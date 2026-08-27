@@ -42,14 +42,23 @@ async function refreshSyncStatus() {
     : '尚未完成第一次同步';
 }
 
-async function runAction(button, action) {
+async function runAction(button, action, loading = null) {
+  const originalLabel = button.textContent;
   button.disabled = true;
-  message.textContent = '';
+  if (loading) {
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+    button.textContent = loading.button;
+  }
+  message.textContent = loading?.message || '';
   try {
     await action();
   } catch (error) {
     message.textContent = error instanceof Error ? error.message : String(error);
   } finally {
+    button.classList.remove('is-loading');
+    button.removeAttribute('aria-busy');
+    button.textContent = originalLabel;
     button.disabled = false;
   }
 }
@@ -73,24 +82,38 @@ clearButton.addEventListener('click', () => runAction(clearButton, async () => {
   message.textContent = '本機觀看進度已清除。';
 }));
 
-createSyncButton.addEventListener('click', () => runAction(createSyncButton, async () => {
-  const result = await sendMessage({
-    type: 'CREATE_SYNC_ACCOUNT',
-    bilibiliUid: bilibiliUid.value,
-  });
-  await Promise.all([refreshStatus(), refreshSyncStatus()]);
-  message.textContent = `同步碼已建立並完成同步。請保存：${result.config.syncCode}`;
-}));
+createSyncButton.addEventListener('click', () => runAction(
+  createSyncButton,
+  async () => {
+    const result = await sendMessage({
+      type: 'CREATE_SYNC_ACCOUNT',
+      bilibiliUid: bilibiliUid.value,
+    });
+    await Promise.all([refreshStatus(), refreshSyncStatus()]);
+    message.textContent = `同步碼已建立並完成同步。請保存：${result.config.syncCode}`;
+  },
+  {
+    button: '正在建立並同步',
+    message: '正在建立同步碼並進行首次同步，請稍候。',
+  },
+));
 
-connectSyncButton.addEventListener('click', () => runAction(connectSyncButton, async () => {
-  await sendMessage({
-    type: 'CONNECT_SYNC_ACCOUNT',
-    syncCode: connectSyncCode.value,
-  });
-  connectSyncCode.value = '';
-  await Promise.all([refreshStatus(), refreshSyncStatus()]);
-  message.textContent = '同步碼已連結並完成同步。';
-}));
+connectSyncButton.addEventListener('click', () => runAction(
+  connectSyncButton,
+  async () => {
+    await sendMessage({
+      type: 'CONNECT_SYNC_ACCOUNT',
+      syncCode: connectSyncCode.value,
+    });
+    connectSyncCode.value = '';
+    await Promise.all([refreshStatus(), refreshSyncStatus()]);
+    message.textContent = '同步碼已連結並完成同步。';
+  },
+  {
+    button: '正在連結並同步',
+    message: '正在連結同步碼並進行首次同步，請稍候。',
+  },
+));
 
 copySyncCodeButton.addEventListener('click', () => runAction(copySyncCodeButton, async () => {
   await navigator.clipboard.writeText(currentSyncCode.value);

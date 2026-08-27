@@ -133,6 +133,32 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button.is-loading:disabled {
+  color: #fff;
+  background: #fb7299;
+  cursor: wait;
+}
+
+button.is-loading::before {
+  content: "";
+  display: inline-block;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 2px solid rgb(255 255 255 / 45%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: loading-spin 700ms linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .secondary-button {
   color: #18191c;
   background: #f1f2f3;
@@ -193,4 +219,10 @@ footer {
   min-height: 19px;
   margin-top: 8px;
   overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.is-loading::before {
+    animation: none;
+  }
 }
