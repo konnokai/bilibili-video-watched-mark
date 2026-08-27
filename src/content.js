@@ -140,7 +140,10 @@
       lastPeriodicSave = now;
       void saveVideoProgress(video);
     };
-    const onPause = () => void saveVideoProgress(video, false, true);
+    // Natural completion also fires pause; let ended send the final sync once.
+    const onPause = () => {
+      if (!video.ended) void saveVideoProgress(video, false, true);
+    };
     const onEnded = () => void saveVideoProgress(video, true, true);
 
     video.addEventListener('timeupdate', onTimeUpdate);
