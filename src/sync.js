@@ -3,6 +3,7 @@ import { normalizeProgressRecord } from './progress.js';
 export const SYNC_API_BASE_URL = 'https://bvw-sync.konnokai.me';
 
 const MAX_PROGRESS_RECORDS = 49;
+const PROGRESS_RETRY_COUNT = 3;
 const SYNC_CODE_PATTERN = /^bvw_[A-Za-z0-9_-]{43}$/;
 const API_ERRORS = {
   invalid_bilibili_uid: 'Bilibili UID 格式不正確',
@@ -21,10 +22,18 @@ function normalizeSyncCode(value) {
 
 async function request(path, init = {}, fetchImpl = fetch) {
   let response;
-  try {
-    response = await fetchImpl(`${SYNC_API_BASE_URL}${path}`, init);
-  } catch {
-    throw new Error('無法連線同步服務');
+  // Progress uses an idempotent PUT; retrying account creation could duplicate it.
+  const canRetry = path === '/v1/progress' && init.method === 'PUT';
+
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      response = await fetchImpl(`${SYNC_API_BASE_URL}${path}`, init);
+      break;
+    } catch {
+      if (!canRetry || attempt >= PROGRESS_RETRY_COUNT) {
+        throw new Error('無法連線同步服務');
+      }
+    }
   }
 
   const body = response.status === 204 ? null : await response.json().catch(() => null);

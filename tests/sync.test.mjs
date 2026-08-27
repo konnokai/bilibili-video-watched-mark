@@ -31,3 +31,15 @@ test('sync client batches uploads and follows download cursors', async () => {
   assert.deepEqual(uploads.map((call) => JSON.parse(call.init.body).records.length), [49, 1]);
   assert.ok(calls.every((call) => call.init.headers.Authorization === `Bearer ${syncCode}`));
 });
+
+test('retries a failed progress upload three times', async () => {
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    if (calls <= 3) throw new TypeError('net::ERR_CONNECTION_CLOSED');
+    return Response.json({ accepted: 1 });
+  };
+
+  assert.equal(await uploadProgress(syncCode, [record(1)], fetchImpl), 1);
+  assert.equal(calls, 4);
+});
