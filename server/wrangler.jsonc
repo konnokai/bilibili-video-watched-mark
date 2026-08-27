@@ -8,7 +8,18 @@
     {
       "binding": "DB",
       "database_name": "bilibili-video-watched-mark",
+      "database_id": "52bd6219-a7fc-499c-8b0d-6e5f10eda5e7",
       "migrations_dir": "migrations"
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "ACCOUNT_CREATION_RATE_LIMITER",
+      "namespace_id": "2026082701",
+      "simple": {
+        "limit": 1,
+        "period": 10
+      }
     }
   ]
 }

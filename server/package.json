@@ -4,11 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "npm run test && npm run typecheck && wrangler types --check",
     "dev": "wrangler dev",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "types": "wrangler types",
-    "check": "npm run typecheck && wrangler deploy --dry-run"
+    "migrate:remote": "wrangler d1 migrations apply bilibili-video-watched-mark --remote",
+    "deploy": "npm run migrate:remote && wrangler deploy",
+    "deploy:preview": "wrangler versions upload",
+    "check": "npm run build && wrangler deploy --dry-run"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "1.1.1",

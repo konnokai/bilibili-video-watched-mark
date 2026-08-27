@@ -5,7 +5,7 @@
 }
 
 body {
-  width: 320px;
+  width: 340px;
   margin: 0;
 }
 
@@ -52,6 +52,30 @@ footer p {
   color: #61666d;
   font-size: 12px;
   line-height: 1.55;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  color: #61666d;
+  font-size: 12px;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 5px;
+  padding: 8px 10px;
+  color: #18191c;
+  background: #fff;
+  border: 1px solid #c9ccd0;
+  border-radius: 5px;
+  font: inherit;
+}
+
+input:focus {
+  border-color: #00aeec;
+  outline: 1px solid #00aeec;
 }
 
 .status {
@@ -109,6 +133,44 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.secondary-button {
+  color: #18191c;
+  background: #f1f2f3;
+}
+
+.secondary-button:hover:not(:disabled) {
+  background: #e3e5e7;
+}
+
+.danger-button {
+  color: #d20c13;
+  background: #fff0f0;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: #ffe0e0;
+}
+
+.input-action,
+.button-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-action input {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-action button {
+  width: auto;
+  white-space: nowrap;
+}
+
+.button-row button {
+  flex: 1;
+}
+
 footer {
   padding-top: 12px;
 }
@@ -130,4 +192,5 @@ footer {
 #message {
   min-height: 19px;
   margin-top: 8px;
+  overflow-wrap: anywhere;
 }

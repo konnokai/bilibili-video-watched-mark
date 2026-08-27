@@ -97,7 +97,7 @@
     });
   }
 
-  async function saveVideoProgress(video, forceCompleted = false) {
+  async function saveVideoProgress(video, forceCompleted = false, syncRemote = false) {
     const identity = getCurrentVideoIdentity();
     if (!identity || video !== attachedVideo || !video.isConnected) return;
 
@@ -119,6 +119,7 @@
           updatedAt: Date.now(),
           source: 'player',
         },
+        syncRemote,
       });
       summaries.set(identity.bvid, response.summary);
       refreshBvid(identity.bvid);
@@ -139,8 +140,8 @@
       lastPeriodicSave = now;
       void saveVideoProgress(video);
     };
-    const onPause = () => void saveVideoProgress(video);
-    const onEnded = () => void saveVideoProgress(video, true);
+    const onPause = () => void saveVideoProgress(video, false, true);
+    const onEnded = () => void saveVideoProgress(video, true, true);
 
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('pause', onPause);
@@ -195,10 +196,10 @@
     });
 
     window.addEventListener('pagehide', () => {
-      if (attachedVideo) void saveVideoProgress(attachedVideo);
+      if (attachedVideo) void saveVideoProgress(attachedVideo, false, true);
     });
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && attachedVideo) void saveVideoProgress(attachedVideo);
+      if (document.hidden && attachedVideo) void saveVideoProgress(attachedVideo, false, true);
     });
   }
 

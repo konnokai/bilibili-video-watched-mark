@@ -191,6 +191,10 @@ function decodeProgressCursor(value: string | null) {
 }
 
 async function createAccount(request: Request, env: Env) {
+  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const { success } = await env.ACCOUNT_CREATION_RATE_LIMITER.limit({ key: clientIp });
+  if (!success) throw new HttpError(429, 'rate_limited');
+
   const body = await readJson(request);
   const bilibiliUid = body && typeof body === 'object'
     ? (body as Record<string, unknown>).bilibiliUid

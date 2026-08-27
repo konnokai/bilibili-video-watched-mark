@@ -8,7 +8,10 @@ const api = (path: string, init?: RequestInit) => exports.default.fetch(
 async function createAccount(uid = '123456') {
   const response = await api('/v1/accounts', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'CF-Connecting-IP': crypto.randomUUID(),
+    },
     body: JSON.stringify({ bilibiliUid: uid }),
   });
   expect(response.status).toBe(201);
@@ -240,5 +243,22 @@ describe('sync API', () => {
     const preflight = await api('/v1/progress', { method: 'OPTIONS' });
     expect(preflight.status).toBe(204);
     expect(preflight.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
+  it('rate limits account creation per client IP', async () => {
+    const headers = {
+      'Content-Type': 'application/json',
+      'CF-Connecting-IP': crypto.randomUUID(),
+    };
+    const create = () => api('/v1/accounts', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ bilibiliUid: '123456' }),
+    });
+
+    expect((await create()).status).toBe(201);
+    const limited = await create();
+    expect(limited.status).toBe(429);
+    await expect(limited.json()).resolves.toEqual({ error: 'rate_limited' });
   });
 });

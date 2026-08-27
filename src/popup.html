@@ -29,8 +29,31 @@
 
       <section>
         <h2>雲端同步</h2>
-        <p>Workers + D1 檔案已建立，下一階段才會啟用同步碼與遠端傳輸。</p>
-        <button type="button" disabled>尚未啟用</button>
+        <div id="sync-unlinked">
+          <p>建立同步碼，或輸入另一台裝置已有的同步碼。</p>
+          <label for="bilibili-uid">Bilibili UID</label>
+          <input id="bilibili-uid" type="text" inputmode="numeric" autocomplete="off" placeholder="例如 123456">
+          <button id="create-sync" type="button">建立同步碼</button>
+
+          <label for="connect-sync-code">既有同步碼</label>
+          <input id="connect-sync-code" type="password" autocomplete="off" placeholder="bvw_...">
+          <button id="connect-sync" class="secondary-button" type="button">連結同步碼</button>
+        </div>
+
+        <div id="sync-linked" hidden>
+          <p id="sync-account"></p>
+          <label for="current-sync-code">同步碼</label>
+          <div class="input-action">
+            <input id="current-sync-code" type="password" readonly>
+            <button id="copy-sync-code" class="secondary-button" type="button">複製</button>
+          </div>
+          <p id="last-synced"></p>
+          <button id="sync-now" type="button">立即同步</button>
+          <div class="button-row">
+            <button id="disconnect-sync" class="secondary-button" type="button">解除連結</button>
+            <button id="delete-sync" class="danger-button" type="button">刪除雲端資料</button>
+          </div>
+        </div>
       </section>
 
       <footer>

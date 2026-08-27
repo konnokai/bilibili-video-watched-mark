@@ -17,7 +17,7 @@ Chrome Manifest V3 擴充功能。它會在一般 Bilibili `BV` 影片頁保存�
 - 同一分 P 看完後維持完成狀態。
 - 首頁、搜尋、動態、空間、熱門與影片推薦等含 BV 縮圖的桌面頁面進度條。
 - 手動匯入目前登入帳號的 Bilibili 一般投稿影片歷史。
-- Workers + D1 同步 API，使用隨機同步碼驗證，不以公開 UID 當密碼。
+- Workers + D1 雙向同步，使用隨機同步碼驗證，不以公開 UID 當密碼。
 
 ## 開發
 
@@ -48,7 +48,28 @@ npx wrangler d1 migrations apply bilibili-video-watched-mark --local
 npx wrangler deploy --dry-run
 ```
 
-擴充功能尚未設定正式 Worker URL，因此目前不會自動上傳資料。公開部署前仍需替公開的帳號建立端點加入濫用防護。
+正式 API 網址為 `https://bvw-sync.konnokai.me`。擴充功能會在啟動、手動同步、匯入歷史，以及播放暫停、完成或離開頁面時同步。建立帳號端點依 Cloudflare 來源 IP 限制為每 10 秒一次。
+
+## Cloudflare 自動部署
+
+本 repo 可直接綁定 Cloudflare Workers Builds，不需要額外建立 GitHub Actions。
+
+先在 Cloudflare 建立名為 `bilibili-video-watched-mark` 的 D1 database，並將它綁定為 `DB`。正式部署會先執行尚未套用的 migration，再部署 Worker，避免新程式先於資料庫 schema 上線。
+
+Workers Builds 設定：
+
+| 欄位 | 值 |
+| --- | --- |
+| Git repository | `konnokai/bilibili-video-watched-mark` |
+| Production branch | `main` |
+| Root directory | `/server` |
+| Build command | `npm ci && npm test && npm run typecheck && npx wrangler types --check` |
+| Deploy command | `npx wrangler d1 migrations apply bilibili-video-watched-mark --remote && npx wrangler deploy` |
+| Non-production deploy command | `npx wrangler versions upload` |
+
+Worker 名稱必須與 `server/wrangler.jsonc` 的 `name` 相同：`bilibili-video-watched-mark-api`。
+
+目前使用專用的 `bilibili-video-watched-mark-api build token`。它包含 Workers Scripts 與 D1 編輯權限。
 
 ## 參考
 

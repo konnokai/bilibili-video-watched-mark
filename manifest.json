@@ -2,9 +2,10 @@
   "manifest_version": 3,
   "minimum_chrome_version": "102",
   "name": "Bilibili 觀看進度標記",
-  "version": "0.1.0",
-  "description": "在 Bilibili 影片縮圖顯示本機保存的最後播放進度。",
+  "version": "0.2.0",
+  "description": "在 Bilibili 影片縮圖顯示觀看進度，並可用同步碼跨裝置同步。",
   "permissions": ["storage"],
+  "host_permissions": ["https://bvw-sync.konnokai.me/*"],
   "optional_host_permissions": ["https://api.bilibili.com/*"],
   "background": {
     "service_worker": "src/background.js",

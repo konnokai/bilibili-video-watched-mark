@@ -6,8 +6,16 @@ import {
   progressStorageKey,
 } from './progress.js';
 import { importBilibiliHistory } from './bilibili-history.js';
+import {
+  createSyncAccount,
+  deleteSyncAccount,
+  downloadProgress,
+  getSyncAccount,
+  uploadProgress,
+} from './sync.js';
 
 const PROGRESS_PREFIX = 'progress:';
+const SYNC_CONFIG_KEY = 'sync:config';
 const saveQueues = new Map();
 
 const storageReady = chrome.storage.local
@@ -65,6 +73,42 @@ async function clearLocalProgress() {
   if (keys.length) await chrome.storage.local.remove(keys);
 }
 
+async function getSyncConfig() {
+  await storageReady;
+  const stored = await chrome.storage.local.get(SYNC_CONFIG_KEY);
+  return stored[SYNC_CONFIG_KEY] || null;
+}
+
+async function saveSyncConfig(account) {
+  await storageReady;
+  const config = {
+    accountId: account.accountId,
+    bilibiliUid: account.bilibiliUid,
+    syncCode: account.syncCode,
+    createdAt: account.createdAt,
+    lastSyncedAt: account.lastSyncedAt || null,
+  };
+  await chrome.storage.local.set({ [SYNC_CONFIG_KEY]: config });
+  return config;
+}
+
+async function synchronizeProgress() {
+  const config = await getSyncConfig();
+  if (!config) throw new Error('尚未連結同步帳號');
+
+  const localRecords = await getAllProgressRecords();
+  const uploaded = await uploadProgress(config.syncCode, localRecords);
+  const remoteRecords = await downloadProgress(config.syncCode);
+  await saveProgressRecords(remoteRecords);
+
+  const lastSyncedAt = Date.now();
+  const current = await getSyncConfig();
+  if (current?.syncCode === config.syncCode) {
+    await saveSyncConfig({ ...current, lastSyncedAt });
+  }
+  return { uploaded, downloaded: remoteRecords.length, lastSyncedAt };
+}
+
 async function handleMessage(message) {
   switch (message?.type) {
     case 'GET_PROGRESS_SUMMARIES': {
@@ -72,6 +116,14 @@ async function handleMessage(message) {
     }
     case 'SAVE_PROGRESS': {
       const record = await saveProgressRecord(message.record);
+      if (message.syncRemote) {
+        const config = await getSyncConfig();
+        if (config) {
+          await uploadProgress(config.syncCode, [record]).catch((error) => {
+            console.warn('[bvw] Failed to upload playback progress', error);
+          });
+        }
+      }
       return { record, summary: { ...record, ratio: progressRatio(record) } };
     }
     case 'GET_LOCAL_STATUS': {
@@ -95,7 +147,43 @@ async function handleMessage(message) {
       const result = await importBilibiliHistory(async (records) => {
         imported += (await saveProgressRecords(records)).length;
       });
+      if (await getSyncConfig()) {
+        await synchronizeProgress().catch((error) => {
+          console.warn('[bvw] Failed to sync imported history', error);
+        });
+      }
       return { imported, uid: result.uid };
+    }
+    case 'GET_SYNC_STATUS': {
+      const config = await getSyncConfig();
+      return config ? { linked: true, ...config } : { linked: false };
+    }
+    case 'CREATE_SYNC_ACCOUNT': {
+      const account = await createSyncAccount(message.bilibiliUid);
+      const config = await saveSyncConfig(account);
+      const sync = await synchronizeProgress();
+      return { config, sync };
+    }
+    case 'CONNECT_SYNC_ACCOUNT': {
+      const syncCode = typeof message.syncCode === 'string' ? message.syncCode.trim() : '';
+      const account = await getSyncAccount(syncCode);
+      const config = await saveSyncConfig({ ...account, syncCode });
+      const sync = await synchronizeProgress();
+      return { config, sync };
+    }
+    case 'SYNC_NOW': {
+      return { sync: await synchronizeProgress() };
+    }
+    case 'DISCONNECT_SYNC_ACCOUNT': {
+      await chrome.storage.local.remove(SYNC_CONFIG_KEY);
+      return {};
+    }
+    case 'DELETE_SYNC_ACCOUNT': {
+      const config = await getSyncConfig();
+      if (!config) throw new Error('尚未連結同步帳號');
+      await deleteSyncAccount(config.syncCode);
+      await chrome.storage.local.remove(SYNC_CONFIG_KEY);
+      return {};
     }
     default:
       throw new Error('Unknown message type');
@@ -110,4 +198,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       error: error instanceof Error ? error.message : String(error),
     }));
   return true;
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  void synchronizeProgress().catch((error) => {
+    if (error?.message !== '尚未連結同步帳號') {
+      console.warn('[bvw] Failed to synchronize on startup', error);
+    }
+  });
 });
