@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="觀看進度標記">
+  <rect x="12" y="24" width="104" height="80" rx="18" fill="#fff" stroke="#18191c" stroke-width="8"/>
+  <path d="M34 14 48 28M94 14 80 28" fill="none" stroke="#18191c" stroke-linecap="round" stroke-width="8"/>
+  <rect x="22" y="88" width="84" height="8" rx="4" fill="#e3e5e7"/>
+  <rect x="22" y="88" width="58" height="8" rx="4" fill="#fb7299"/>
+</svg>

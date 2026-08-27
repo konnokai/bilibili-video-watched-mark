@@ -1,0 +1,37 @@
+:where(.bvw-progress-host) {
+  position: relative;
+}
+
+.bvw-progress {
+  --bvw-progress: 0%;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgb(255 255 255 / 42%);
+  border-radius: 0 0 4px 4px;
+}
+
+.bvw-progress__fill {
+  display: block;
+  width: var(--bvw-progress);
+  height: 100%;
+  background: #fb7299;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 8%);
+  transition: width 160ms ease-out;
+}
+
+.bvw-progress--completed .bvw-progress__fill {
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bvw-progress__fill {
+    transition: none;
+  }
+}

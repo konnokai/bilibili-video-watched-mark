@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bilibili 觀看進度標記</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>觀看進度標記</h1>
+          <p>本機紀錄已啟用</p>
+        </div>
+      </header>
+
+      <section class="status" aria-live="polite">
+        <div><strong id="video-count">-</strong><span>部影片</span></div>
+        <div><strong id="part-count">-</strong><span>個分 P</span></div>
+      </section>
+
+      <section>
+        <h2>站內歷史</h2>
+        <p>經同意後，讀取目前登入帳號的一般投稿影片歷史。Cookie 不會離開 Bilibili。</p>
+        <button id="import-history" type="button">匯入 Bilibili 歷史</button>
+      </section>
+
+      <section>
+        <h2>雲端同步</h2>
+        <p>Workers + D1 檔案已建立，下一階段才會啟用同步碼與遠端傳輸。</p>
+        <button type="button" disabled>尚未啟用</button>
+      </section>
+
+      <footer>
+        <button id="clear-local" class="text-button" type="button">清除本機紀錄</button>
+        <p id="message" role="status"></p>
+      </footer>
+    </main>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

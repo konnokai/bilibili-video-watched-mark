@@ -1,0 +1,10 @@
+{
+  "name": "bilibili-video-watched-mark",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/progress.test.mjs",
+    "check": "node --check src/background.js && node --check src/bilibili-history.js && node --check src/content.js && node --check src/popup.js"
+  }
+}
